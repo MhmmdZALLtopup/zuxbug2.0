@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ZUX BUG 2.0</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%);
+            --bg-light: #f3e8ff;
+            --text-dark: #1f2937;
+            --text-gray: #6b7280;
+            --purple-main: #8b5cf6;
+            --border-color: #000000;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        html, body { background-color: #e5e5e5; height: 100%; margin: 0; overflow: hidden; }
+        body { display: flex; justify-content: center; position: fixed; top: 0; left: 0; right: 0; bottom: 0; }
+
+        .app-container {
+            width: 100%; max-width: 414px; background-color: #ffffff;
+            height: 100vh; height: 100dvh; position: relative; overflow: hidden;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1); display: flex; flex-direction: column;
+        }
+
+        .screen {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            display: flex; flex-direction: column; background: #ffffff; z-index: 10;
+        }
+
+        .scrollable-content { 
+            flex: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 130px; display: flex; flex-direction: column; 
+        }
+        .scrollable-content::-webkit-scrollbar { display: none; }
+        .scrollable-content { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .hidden { display: none !important; }
+        .fade-in { animation: fadeIn 0.4s ease-in-out forwards; }
+        .slide-up { animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
+
+        .logo-image { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #d8b4fe; box-shadow: 0 10px 25px rgba(168, 85, 247, 0.4); margin: 20px auto 15px auto; display: block; flex-shrink: 0;}
+        .logo-image-small { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #000; display: inline-block; flex-shrink: 0;}
+
+        .btn-gradient { background: var(--primary-gradient); color: white; border: none; box-shadow: 0 10px 20px rgba(168, 85, 247, 0.3); }
+        .btn-outline { width: 100%; padding: 15px; border: 2px solid var(--border-color); background: white; border-radius: 12px; font-weight: 600; font-size: 14px; cursor: pointer; color: var(--text-dark); transition: 0.2s; }
+        .btn-outline:active { background: #f3f4f6; }
+
+        /* SPLASH SCREEN (LOADING) */
+        #splash-screen { background: #000; align-items: center; justify-content: center; z-index: 999; }
+        .splash-video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.6; z-index: -1; pointer-events: none;}
+        .splash-btn-skip { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.2); backdrop-filter: blur(5px); border: 1px solid white; color: white; padding: 8px 20px; border-radius: 20px; font-weight: 600; cursor: pointer; z-index: 9999; font-size: 13px; pointer-events: auto;}
+        .splash-content { position: relative; z-index: 10; text-align: center; width: 80%; color: white; pointer-events: none;}
+        @keyframes pulseLogo { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(168,85,247,0.7); } 70% { transform: scale(1.1); box-shadow: 0 0 0 15px rgba(168,85,247,0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(168,85,247,0); } }
+        .splash-logo { width: 100px; height: 100px; border-radius: 50%; margin-bottom: 30px; animation: pulseLogo 2s infinite; border: 3px solid #d8b4fe; object-fit: cover; }
+        .splash-bar-bg { width: 100%; height: 8px; background: rgba(255,255,255,0.2); border-radius: 10px; overflow: hidden; margin-top: 15px; border: 1px solid rgba(255,255,255,0.4); }
+        .splash-bar-fill { width: 0%; height: 100%; background: var(--primary-gradient); transition: width 1s linear; }
+
+        /* ONBOARDING & MAIN */
+        #onboarding-screen { background: linear-gradient(180deg, #fdf4ff 0%, #e9d5ff 100%); align-items: center; padding: 20px; text-align: center; }
+        .onboarding-title-top { font-size: 18px; font-weight: 600; letter-spacing: 2px; color: var(--text-dark); margin-bottom: 5px; }
+        .onboarding-subtitle-top { font-size: 12px; color: var(--text-gray); margin-bottom: 20px; }
+        .card-slider { background: white; border-radius: 20px; padding: 30px 20px; width: 100%; border: 2px solid var(--border-color); box-shadow: 4px 4px 0px rgba(0,0,0,0.05); min-height: 220px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 20px; }
+        .tag-badge { background: #f3e8ff; color: #7e22ce; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 15px; border: 1px solid #d8b4fe; }
+        .slide-title { font-size: 18px; font-weight: 700; margin-bottom: 10px; color: var(--text-dark); }
+        .slide-desc { font-size: 13px; color: var(--text-gray); margin-bottom: 20px; line-height: 1.5; }
+        .dots { display: flex; gap: 8px; margin-bottom: 20px; }
+        .dot { width: 8px; height: 8px; background: #d1d5db; border-radius: 50%; transition: 0.3s; }
+        .dot.active { width: 20px; background: #a855f7; border-radius: 10px; }
+        .btn-lanjut { width: 100%; padding: 15px; border-radius: 15px; border: 2px solid var(--border-color); background: white; font-size: 16px; font-weight: 600; color: var(--text-dark); cursor: pointer; transition: 0.3s; margin-top: auto; margin-bottom: 10px; flex-shrink: 0; }
+
+        .header-image { width: 100%; height: 220px; object-fit: cover; background: url('https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&q=80&w=800') center/cover no-repeat; flex-shrink: 0; }
+        .main-content { padding: 20px; }
+        .main-title { font-size: 32px; font-weight: 700; line-height: 1.1; margin-bottom: 5px; }
+        .info-box { border: 1px solid #e5e7eb; border-radius: 15px; padding: 15px; margin-bottom: 20px; }
+        .info-header { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 14px; margin-bottom: 10px; }
+        .info-text { font-size: 12px; color: var(--text-gray); line-height: 1.6; }
+        .btn-main { width: 100%; padding: 15px; border-radius: 12px; font-size: 14px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border: none; color: white; margin-bottom: 15px; }
+        .btn-half { flex: 1; padding: 15px; border-radius: 12px; font-size: 14px; font-weight: 600; color: white; display: flex; justify-content: center; align-items: center; gap: 8px; border: none; cursor: pointer; }
+        
+        /* LOGIN SCREEN */
+        #login-screen { background: #f9fafb; align-items: center; justify-content: center; padding: 20px; }
+        .login-header { text-align: center; margin-bottom: 30px; }
+        .login-header h2 { font-size: 20px; font-weight: 700; margin-top: 15px; }
+
+        /* PRICING & QRIS MANUAL */
+        #pricing-screen { background: #f9fafb; }
+        .pricing-header { padding: 20px; background: white; border-bottom: 2px solid #000; text-align: center; position: sticky; top: 0; z-index: 10;}
+        .pricing-card { background: white; border: 3px solid #000; border-radius: 15px; padding: 20px; margin: 15px 20px; box-shadow: 4px 4px 0px #000; }
+        .pricing-card h3 { font-size: 20px; font-weight: 800; display: flex; justify-content: space-between;}
+        .price-tag { color: var(--purple-main); }
+        .pricing-features { margin: 15px 0; font-size: 13px; color: var(--text-dark); line-height: 1.8;}
+        .pricing-features li { list-style: none; display: flex; align-items: center; gap: 8px;}
+        .btn-buy { background: var(--purple-main); color: white; border: 2px solid #000; padding: 12px; border-radius: 10px; width: 100%; font-weight: 700; cursor: pointer; box-shadow: 2px 2px 0px #000;}
+        .btn-buy:active { transform: translate(2px,2px); box-shadow: none; }
+
+        #manual-qris-screen { background: white; padding: 20px; align-items: center; justify-content: center; text-align: center; }
+        .manual-qris-box { border: 3px solid #000; padding: 15px; border-radius: 20px; box-shadow: 6px 6px 0px #000; background: #fff; display: flex; flex-direction: column; align-items: center; margin-bottom: 20px;}
+        .manual-qris-box img { width: 240px; height: 240px; object-fit: contain; border-radius: 12px; display: block; margin-bottom: 10px; }
+        .btn-wa-confirm { background: #22c55e; color: white; border: 2px solid #000; padding: 14px; border-radius: 12px; width: 100%; font-weight: 700; cursor: pointer; box-shadow: 2px 2px 0px #000; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; text-decoration: none;}
+
+        /* REGISTER SCREEN */
+        #register-screen { background: white; padding: 30px 20px; align-items: center; justify-content: center;}
+        .input-group { width: 100%; margin-bottom: 20px; position: relative; }
+        .input-group input { width: 100%; padding: 16px; border: 2px solid var(--border-color); border-radius: 12px; font-size: 14px; font-weight: 500; outline: none; }
+
+        /* DASHBOARD SCREEN */
+        .dash-header { position: sticky; top: 0; z-index: 40; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(5px); border-bottom: 2px solid #000; display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; flex-shrink: 0;}
+        .dash-logo { font-size: 20px; font-weight: 800; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
+        .dash-content-wrapper { padding: 20px; padding-bottom: 110px; }
+        
+        .hero-card { position: relative; width: 100%; height: 200px; border-radius: 15px; border: 3px solid #000; box-shadow: 6px 6px 0px #000; margin-bottom: 25px; background: url('https://images.unsplash.com/photo-1580477667995-2b94f01c9516?auto=format&fit=crop&q=80&w=800') center/cover no-repeat; overflow: hidden; }
+        .hero-top { display: flex; justify-content: space-between; padding: 15px; }
+        .badge-online { background: #fff; border: 2px solid #000; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+        .badge-online .dot-green { width: 8px; height: 8px; background: #10b981; border-radius: 50%; }
+        .badge-purple { background: var(--purple-main); color: #fff; border: 2px solid #000; width: 35px; height: 35px; border-radius: 50%; display: flex; justify-content: center; align-items: center; }
+        .hero-bottom-card { position: absolute; bottom: 10px; left: 10px; right: 10px; background: #fff; border: 2px solid #000; border-radius: 12px; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; }
+        
+        .greeting-section { margin-bottom: 20px; position: relative; }
+        .greeting-section h2 { font-size: 18px; font-weight: 700; color: #000;}
+        .underline { width: 50px; height: 4px; background: #000; margin-top: 5px; margin-bottom: 15px; }
+        
+        .home-shortcut-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
+        .home-shortcut-box { border-radius: 15px; border: 2px solid #000; padding: 15px 10px; text-align: center; box-shadow: 4px 4px 0px #000; cursor: pointer; transition: 0.2s; color: white; font-weight: 700; font-size: 13px; }
+        .home-shortcut-box:active { transform: translate(2px,2px); box-shadow: none; }
+
+        .admin-controls { background: #fff5f5; border: 3px solid #000; box-shadow: 4px 4px 0px #000; border-radius: 15px; padding: 15px; margin-bottom: 20px; }
+        .admin-btn { padding: 10px; border: 2px solid #000; border-radius: 10px; font-weight: 700; font-size: 12px; color: white; cursor: pointer; box-shadow: 2px 2px 0px #000; flex: 1; text-align: center; transition: 0.2s;}
+        .admin-btn:active { transform: translate(2px, 2px); box-shadow: none; }
+        
+        .history-list { font-size: 12px; max-height: 200px; overflow-y: auto; padding-right: 5px; display: flex; flex-direction: column; gap: 8px;}
+        .history-list::-webkit-scrollbar { width: 5px; }
+        .history-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 5px; }
+        .history-item { display: flex; flex-direction: column; padding: 10px; background: #fff; border: 2px solid #000; border-radius: 10px; gap: 5px; margin-bottom: 5px;}
+        .history-row { display: flex; justify-content: space-between; align-items: center; }
+        
+        .btn-acc { background: #10b981; color: white; border: 1px solid #000; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; }
+        .btn-reject { background: #ef4444; color: white; border: 1px solid #000; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; }
+
+        /* BOTTOM NAV */
+        .bottom-nav-container { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: calc(100% - 40px); max-width: 374px; height: 70px; z-index: 40; }
+        .bottom-nav-bg { width: 100%; height: 100%; background: #fff; border: 3px solid #000; border-radius: 35px; box-shadow: 4px 4px 0px #000; display: flex; justify-content: space-around; align-items: center; padding: 0 10px; }
+        .nav-item { font-size: 22px; color: #6b7280; cursor: pointer; transition: 0.2s; padding: 10px; position: relative;}
+        .nav-item.active { color: var(--purple-main); }
+        .nav-item:active { transform: scale(0.9); }
+        .notif-dot { position: absolute; top: 5px; right: 5px; width: 10px; height: 10px; background: red; border-radius: 50%; border: 2px solid white; display: none; }
+
+        .center-btn-wrapper { position: absolute; left: 50%; top: -20px; transform: translateX(-50%); width: 75px; height: 75px; background: #fff; border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 -3px 0 0 #000, -3px 0 0 0 #000, 3px 0 0 0 #000; }
+        .center-btn { width: 60px; height: 60px; background: var(--purple-main); border-radius: 50%; display: flex; justify-content: center; align-items: center; color: white; font-size: 24px; border: 3px solid #000; box-shadow: inset 0 0 10px rgba(255,255,255,0.2); cursor: pointer; transition: transform 0.2s; }
+        .center-btn:active { transform: scale(0.9); }
+
+        /* FEATURES & GENERAL SCREENS */
+        .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px; padding-bottom: 110px;}
+        .feature-box { border-radius: 15px; border: 2px solid #000; padding: 20px 10px; text-align: center; box-shadow: 4px 4px 0px #000; cursor: pointer; color: white; font-weight: 700; font-size: 13px; transition: 0.2s; }
+        .feature-box:active { transform: translate(2px, 2px); box-shadow: none; }
+
+        .sub-header { display: flex; align-items: center; gap: 15px; padding: 15px 20px; background: white; border-bottom: 2px solid #000; position: sticky; top: 0; z-index: 10; font-size: 18px; font-weight: 700; flex-shrink: 0;}
+        .back-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: #000; }
+        .btn-pairing-huge { background: var(--purple-main); color: white; font-weight: 800; font-size: 18px; border: 3px solid #000; border-radius: 15px; padding: 20px; width: 100%; box-shadow: 4px 4px 0px #000; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 50px;}
+        .btn-pairing-huge:active { transform: translate(4px, 4px); box-shadow: none; }
+
+        .bot-status-box { background: #dcfce7; border: 2px solid #22c55e; color: #166534; padding: 15px; border-radius: 15px; width: 100%; text-align: center; font-weight: 700; margin-top: 20px; display: none; flex-direction: column; gap: 5px; }
+        .pairing-code-display { background: #fff; border: 2px dashed var(--purple-main); padding: 10px; margin-top: 10px; border-radius: 10px; font-size: 18px; letter-spacing: 2px; color: var(--purple-main); font-family: monospace; }
+
+        /* MODERN POPUPS */
+        .modern-modal-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px; backdrop-filter: blur(3px); }
+        .modern-modal { background: white; width: 100%; max-width: 340px; border-radius: 20px; padding: 25px 20px; text-align: center; border: 3px solid #000; box-shadow: 6px 6px 0px #000; position: relative; max-height: 90vh; overflow-y: auto;}
+        .modern-modal h3 { font-size: 18px; font-weight: 800; margin-bottom: 10px; color: var(--text-dark); }
+        .modern-modal p { font-size: 13px; color: var(--text-gray); margin-bottom: 20px; }
+        .modal-input { width: 100%; padding: 12px; border: 2px solid #000; border-radius: 10px; font-size: 13px; margin-bottom: 15px; outline: none; font-family: 'Poppins', sans-serif;}
+        .modal-input:focus { border-color: var(--purple-main); }
+        .modal-btn-group { display: flex; gap: 10px; }
+        .btn-modal-ok { background: var(--purple-main); color: white; border: 2px solid #000; padding: 12px; border-radius: 10px; font-weight: 700; width: 100%; cursor: pointer; box-shadow: 2px 2px 0px #000; transition: 0.2s;}
+        .btn-modal-cancel { background: #f3f4f6; color: #000; border: 2px solid #000; padding: 12px; border-radius: 10px; font-weight: 700; width: 100%; cursor: pointer; box-shadow: 2px 2px 0px #000; transition: 0.2s;}
+        .btn-modal-ok:active, .btn-modal-cancel:active { transform: translate(2px,2px); box-shadow: none; }
+
+        /* BOTTOM SHEET MENU */
+        .bottom-sheet-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 60; display: flex; align-items: flex-end; }
+        .bottom-sheet { background: white; width: 100%; border-radius: 25px 25px 0 0; border: 3px solid #000; border-bottom: none; padding: 30px 20px 40px 20px; display: flex; flex-direction: column; gap: 15px; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); }
+        .sheet-btn { background: #fff; border: 3px solid #000; border-radius: 15px; padding: 18px; font-size: 16px; font-weight: 800; color: #000; cursor: pointer; box-shadow: 4px 4px 0px #000; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.2s;}
+        .sheet-btn:active { transform: translate(2px,2px); box-shadow: none; }
+        .sheet-btn-purple { background: var(--purple-main); color: white; }
+
+        /* MAINTENANCE SCREEN 3D */
+        #maintenance-screen { background: #000; z-index: 9999; justify-content: center; align-items: center; text-align: center; color: white; overflow: hidden;}
+        .mt-icon { font-size: 60px; color: #ef4444; margin-bottom: 20px; animation: mtSpin 4s linear infinite; }
+        @keyframes mtSpin { 0% { transform: rotateY(0deg); } 100% { transform: rotateY(360deg); } }
+        .mt-title { font-size: 24px; font-weight: 800; margin-bottom: 10px; background: -webkit-linear-gradient(135deg, #ff0844 0%, #ffb199 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;}
+        .mt-desc { font-size: 13px; color: #ccc; padding: 0 30px; line-height: 1.6; }
+        .mt-particles { position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: -1; background-image: radial-gradient(circle, rgba(255,255,255,0.2) 2px, transparent 2px); background-size: 30px 30px; animation: mtMove 10s linear infinite; }
+        @keyframes mtMove { 0% { transform: translateY(0); } 100% { transform: translateY(30px); } }
+
+    </style>
+</head>
+<body>
+
+<!-- KUMPULAN MODERN POPUPS -->
+<div id="alert-modal" class="hidden modern-modal-overlay">
+    <div class="modern-modal fade-in">
+        <h3 id="alert-title">Info</h3>
+        <p id="alert-message">Pesan disini</p>
+        <button class="btn-modal-ok" onclick="closeModernAlert()">OK Mengerti</button>
+    </div>
+</div>
+
+<div id="prompt-modal" class="hidden modern-modal-overlay">
+    <div class="modern-modal fade-in">
+        <h3 id="prompt-title">Input</h3>
+        <p id="prompt-message" style="margin-bottom: 10px;"></p>
+        <input type="text" id="prompt-input" class="modal-input" placeholder="Ketik disini...">
+        <div class="modal-btn-group">
+            <button class="btn-modal-cancel" onclick="closeModernPrompt()">Batal</button>
+            <button class="btn-modal-ok" id="prompt-submit-btn" onclick="submitModernPrompt()">Kirim</button>
+        </div>
+    </div>
+</div>
+
+<!-- POPUP PILIH ROLE SAAT ADMIN KLIK 'BUAT AKUN' -->
+<div id="role-select-modal" class="hidden modern-modal-overlay">
+    <div class="modern-modal fade-in">
+        <h3>Pilih Role Akun</h3>
+        <p>Tentukan tingkat akses untuk akun baru:</p>
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+            <button class="btn-buy" onclick="confirmAddRole('MEMBER')">MEMBER</button>
+            <button class="btn-buy" style="background: linear-gradient(135deg, #6366f1, #a855f7);" onclick="confirmAddRole('VIP')">VIP</button>
+            <button class="btn-buy" style="background: linear-gradient(135deg, #3b82f6, #2563eb);" onclick="confirmAddRole('RESELLER')">RESELLER</button>
+        </div>
+        <button class="btn-modal-cancel" onclick="document.getElementById('role-select-modal').classList.add('hidden')">Batal</button>
+    </div>
+</div>
+
+<!-- POPUP BROADCAST ADMIN -->
+<div id="broadcast-modal" class="hidden modern-modal-overlay">
+    <div class="modern-modal fade-in">
+        <h3>Kirim Broadcast Member</h3>
+        <input type="text" id="bc-title" class="modal-input" placeholder="Judul Pesan">
+        <textarea id="bc-message" class="modal-input" placeholder="Isi Notifikasi..." rows="3"></textarea>
+        <select id="bc-font" class="modal-input" style="padding: 10px;">
+            <option value="'Poppins', sans-serif">Font: Poppins (Default)</option>
+            <option value="monospace">Font: Monospace / Terminal</option>
+            <option value="serif">Font: Serif / Klasik</option>
+        </select>
+        <p style="font-size: 11px; text-align: left; margin-bottom: 5px; color: #000;">Upload Gambar (Opsional):</p>
+        <input type="file" id="bc-image" accept="image/*" class="modal-input" style="padding: 8px;">
+        <div class="modal-btn-group">
+            <button class="btn-modal-cancel" onclick="closeBroadcastModal()">Batal</button>
+            <button class="btn-modal-ok" onclick="sendBroadcast()">Kirim PUSH</button>
+        </div>
+    </div>
+</div>
+
+<!-- POPUP LIHAT NOTIFIKASI MEMBER -->
+<div id="notif-modal" class="hidden modern-modal-overlay">
+    <div class="modern-modal fade-in">
+        <h3 id="notif-display-title" style="margin-bottom: 15px; color: var(--purple-main);">Notifikasi</h3>
+        <img id="notif-display-image" src="" alt="Lampiran" style="width: 100%; border-radius: 10px; border: 2px solid #000; margin-bottom: 15px; display: none;">
+        <p id="notif-display-message" style="font-size: 14px; line-height: 1.6; text-align: left; background: #f9fafb; padding: 15px; border-radius: 10px; border: 1px dashed #ccc; word-wrap: break-word;"></p>
+        <button class="btn-modal-ok" onclick="closeNotifModal()" style="margin-top: 10px;">Tutup Notifikasi</button>
+    </div>
+</div>
+
+<!-- POPUP MENU BUG & PAIRING -->
+<div id="menu-bottom-sheet" class="hidden bottom-sheet-overlay" onclick="closeMenuSheet(event)">
+    <div class="bottom-sheet slide-up" id="sheet-content">
+        <div style="width: 40px; height: 5px; background: #ccc; border-radius: 5px; margin: 0 auto 10px auto;"></div>
+        <button class="sheet-btn" onclick="openBugScreen()"><i class="fa-solid fa-bug"></i> BUG WA</button>
+        <button class="sheet-btn sheet-btn-purple" onclick="openPairingScreen()"><i class="fa-solid fa-robot"></i> PAIRING BOT</button>
+    </div>
+</div>
+
+<!-- THE APP -->
+<div class="app-container">
+
+    <!-- SCREEN MAINTENANCE 3D -->
+    <div id="maintenance-screen" class="screen hidden">
+        <div class="mt-particles"></div>
+        <i class="fa-solid fa-triangle-exclamation mt-icon"></i>
+        <h2 class="mt-title">SYSTEM MAINTENANCE</h2>
+        <p class="mt-desc">Server ZUX BUG sedang dalam perbaikan dan sinkronisasi API. Harap kembali beberapa saat lagi.</p>
+    </div>
+
+    <!-- SPLASH SCREEN (LOADING) -->
+    <div id="splash-screen" class="screen">
+        <video id="splash-video" class="splash-video" src="https://files.catbox.moe/rxbdvs.mp4" autoplay loop muted playsinline></video>
+        <button class="splash-btn-skip" onclick="skipSplash()">Skip <i class="fa-solid fa-forward"></i></button>
+        
+        <div class="splash-content">
+            <img src="https://files.catbox.moe/example.png" alt="ZUX" class="splash-logo" onerror="this.src='https://via.placeholder.com/100/000000/d8b4fe?text=ZUX'">
+            <h3 style="font-weight: 800; font-size: 20px; letter-spacing: 1px;">Mengunduh Resource...</h3>
+            <p style="font-size: 12px; color: #ddd; margin-top: 5px;">Harap tunggu proses sinkronisasi database.</p>
+            <div class="splash-bar-bg">
+                <div id="splash-progress" class="splash-bar-fill"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ONBOARDING -->
+    <div id="onboarding-screen" class="screen hidden scrollable-content">
+        <img src="https://files.catbox.moe/example.png" alt="ZUX BUG Logo" class="logo-image" onerror="this.src='https://via.placeholder.com/100/000000/d8b4fe?text=ZUX'">
+        <div class="onboarding-title-top" id="top-title">WELCOME</div>
+        <div class="onboarding-subtitle-top" id="top-subtitle">Your ZUX BUG experience starts here</div>
+        <div class="card-slider" id="card-slider"></div>
+        <div class="dots"><div class="dot active"></div><div class="dot"></div><div class="dot"></div></div>
+        <button class="btn-lanjut" id="btn-lanjut" onclick="window.nextSlide()">LANJUT</button>
+    </div>
+
+    <!-- MAIN MENU -->
+    <div id="main-screen" class="screen hidden scrollable-content">
+        <div class="header-image"></div>
+        <div class="main-content">
+            <h1 class="main-title">ZUX BUG<br><span>2.0</span></h1>
+            <p style="font-size: 12px; color: var(--text-gray); margin-bottom: 20px;">Aplikasi Yang Dikembangkan ZUX BUG Team</p>
+            <div class="info-box">
+                <div class="info-header"><i class="fa-solid fa-circle-info" style="color: #a855f7;"></i> Tentang ZUX BUG</div>
+                <p class="info-text">ZUX BUG adalah platform tools canggih yang dirancang untuk memberikan performa terbaik. Dikembangkan secara profesional.</p>
+            </div>
+            <button class="btn-main" style="background: var(--primary-gradient);" onclick="window.showLogin()">
+                <span><i class="fa-solid fa-arrow-right-to-bracket"></i> Sign-in To ZUX BUG</span>
+            </button>
+            <div class="btn-grid" style="display:flex; gap:15px; margin-bottom:15px;">
+                <button class="btn-half" style="background: linear-gradient(135deg, #6366f1, #a855f7);"><i class="fa-brands fa-telegram"></i> Developer</button>
+                <button class="btn-half" style="background: linear-gradient(135deg, #3b82f6, #2563eb);" onclick="window.open('https://wa.me/6283821914043', '_blank')"><i class="fa-brands fa-whatsapp"></i> Owner</button>
+            </div>
+            <button class="btn-outline">By : ZALL DEV</button>
+        </div>
+    </div>
+
+    <!-- LOGIN SCREEN (DIUBAH MENJADI USERNAME DAN PASSWORD) -->
+    <div id="login-screen" class="screen hidden scrollable-content">
+        <div class="login-header">
+            <img src="https://files.catbox.moe/example.png" alt="ZUX BUG Logo" class="logo-image" onerror="this.src='https://via.placeholder.com/100/000000/d8b4fe?text=ZUX'">
+            <h2>Welcome To ZUX BUG</h2>
+            <p style="font-size: 13px; color: var(--text-gray);">Masuk menggunakan Username dan Password.</p>
+        </div>
+        
+        <div style="width: 100%; padding: 0 20px;">
+            <input type="text" id="login-username" class="modal-input" placeholder="Username / Email" style="margin-bottom: 15px;">
+            <input type="password" id="login-password" class="modal-input" placeholder="Password" style="margin-bottom: 20px;">
+            <button class="btn-buy" style="margin-bottom: 15px; padding: 15px; font-size: 16px;" onclick="window.loginWithCredentials()">Login Ke ZUX BUG</button>
+        </div>
+
+        <button class="btn-outline" style="border-radius: 12px; margin: 0 20px; width: calc(100% - 40px);" onclick="window.showPricing()">
+            <i class="fa-solid fa-cart-shopping"></i> No Access? Buy Here
+        </button>
+    </div>
+
+    <!-- ERROR UNAUTHORIZED SCREEN -->
+    <div id="unauthorized-screen" class="screen hidden scrollable-content" style="align-items: center; justify-content: center; padding: 20px; text-align: center;">
+        <img src="https://cdn-icons-png.flaticon.com/512/1008/1008928.png" alt="Error" style="width: 120px; margin-bottom: 20px; opacity: 0.8;">
+        <h2 style="font-weight: 800; font-size: 22px; margin-bottom: 10px; color: #ef4444;">Akses Ditolak!</h2>
+        <p style="font-size: 13px; color: var(--text-gray); margin-bottom: 30px;">Akun kamu belum terdaftar di database kami. Silakan beli akses terlebih dahulu untuk menggunakan ZUX BUG.</p>
+        <button class="btn-buy" style="width: 100%; margin-bottom: 15px;" onclick="goToPricingFromError()">Beli Akses Sekarang</button>
+        <button class="btn-outline" style="width: 100%;" onclick="backToLoginFromError()">Kembali ke Login</button>
+    </div>
+
+    <!-- PRICING SCREEN -->
+    <div id="pricing-screen" class="screen hidden scrollable-content">
+        <div class="pricing-header">
+            <h2 style="font-weight: 800;"><i class="fa-solid fa-store"></i> Beli Akses ZUX BUG</h2>
+            <p style="font-size: 12px; color: gray;">Pilih role kamu, transfer manual via QRIS.</p>
+        </div>
+        <div class="pricing-card">
+            <h3>MEMBER <span class="price-tag">Rp 10.000</span></h3>
+            <ul class="pricing-features">
+                <li><i class="fa-solid fa-check" style="color:#10b981;"></i> Akses Biasa</li>
+                <li><i class="fa-solid fa-check" style="color:#10b981;"></i> Bug (No free sender)</li>
+                <li><i class="fa-solid fa-check" style="color:#10b981;"></i> Permanen</li>
+            </ul>
+            <button class="btn-buy" onclick="window.startManualPayment('MEMBER', 10000)">Beli Member</button>
+        </div>
+        <div class="pricing-card" style="border-color: var(--purple-main);">
+            <h3>VIP <span class="price-tag">Rp 20.000</span></h3>
+            <ul class="pricing-features">
+                <li><i class="fa-solid fa-check" style="color:#10b981;"></i> Fitur Melebihi Member</li>
+                <li><i class="fa-solid fa-check" style="color:#10b981;"></i> Prioritas Server</li>
+                <li><i class="fa-solid fa-check" style="color:#10b981;"></i> Permanen</li>
+            </ul>
+            <button class="btn-buy" onclick="window.startManualPayment('VIP', 20000)">Beli VIP</button>
+        </div>
+        <div class="pricing-card">
+            <h3>RESELLER <span class="price-tag">Rp 30.000</span></h3>
+            <ul class="pricing-features">
+                <li><i class="fa-solid fa-check" style="color:#10b981;"></i> Bisa Jual APK Kembali</li>
+                <li><i class="fa-solid fa-check" style="color:#10b981;"></i> Create Akun Member</li>
+                <li><i class="fa-solid fa-check" style="color:#10b981;"></i> Permanen</li>
+            </ul>
+            <button class="btn-buy" onclick="window.startManualPayment('RESELLER', 30000)">Beli Reseller</button>
+        </div>
+        <button class="btn-outline" style="margin: 0 20px 20px 20px; width: auto;" onclick="window.goBackToLogin()"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
+    </div>
+
+    <!-- MANUAL QRIS PAYMENT SCREEN -->
+    <div id="manual-qris-screen" class="screen hidden scrollable-content">
+        <h2 style="margin-bottom: 5px;">Pembayaran QRIS Manual</h2>
+        <p style="font-size: 13px; color: gray; margin-bottom: 10px;">Scan QRIS di bawah ini, transfer sesuai nominal, lalu konfirmasi ke WhatsApp Admin.</p>
+        
+        <div class="manual-qris-box">
+            <img src="https://files.catbox.moe/xn5q5h.jpg" alt="QRIS Manual" crossorigin="anonymous">
+            <p style="font-size: 12px; font-weight: bold; margin-top: 5px;" id="manual-price-display">Nominal: Rp 0</p>
+        </div>
+
+        <div class="unique-code-box">
+            ID Transaksi Kamu: <br>
+            <strong id="manual-trx-id" style="font-size: 16px; color: #000;"></strong>
+        </div>
+
+        <a id="wa-confirm-btn" href="#" target="_blank" class="btn-wa-confirm">
+            <i class="fa-brands fa-whatsapp" style="font-size: 18px;"></i> Konfirmasi Pembayaran ke WA
+        </a>
+
+        <button class="btn-cancel" onclick="document.getElementById('manual-qris-screen').classList.add('hidden'); document.getElementById('pricing-screen').classList.remove('hidden');">Kembali</button>
+    </div>
+
+    <!-- REGISTER SCREEN (SETELAH ACC ADMIN) -->
+    <div id="register-screen" class="screen hidden scrollable-content">
+        <div class="logo-image-small" style="margin-bottom: 20px;">
+            <img src="https://files.catbox.moe/example.png" alt="Logo" style="width:100%; border-radius:50%;" onerror="this.src='https://via.placeholder.com/50'">
+        </div>
+        <h2 style="margin-bottom: 5px;">Akun Telah Di-ACC! 🎉</h2>
+        <p style="font-size: 13px; color: gray; margin-bottom: 30px; text-align: center;">Silakan masukkan Username / Email kamu untuk aktivasi role <strong id="reg-role-text"></strong>.</p>
+        <div style="width: 100%; padding: 0 20px;">
+            <input type="text" id="reg-email" class="modal-input" placeholder="Masukkan Username / Email (Contoh: budi123)">
+            <button class="btn-buy" onclick="window.submitRegistration()">Selesaikan Pendaftaran</button>
+        </div>
+    </div>
+
+    <!-- DASHBOARD SCREEN -->
+    <div id="dashboard-screen" class="screen hidden">
+        <div class="dash-header">
+            <div class="dash-logo">
+                <img src="https://files.catbox.moe/example.png" alt="Logo" class="logo-image-small" onerror="this.src='https://via.placeholder.com/50'" style="width: 30px; height: 30px;"> ZUX BUG
+            </div>
+            <div style="display: flex; gap: 15px; font-size: 22px; cursor: pointer;">
+                <i class="fa-solid fa-headset" onclick="showAppAlert('Bantuan', 'Silakan hubungi WhatsApp Owner: 6283821914043')"></i>
+                <i class="fa-solid fa-right-from-bracket" onclick="window.logout()"></i>
+            </div>
+        </div>
+
+        <div class="scrollable-content dash-content-wrapper">
+            <div class="hero-card">
+                <div class="hero-top">
+                    <div class="badge-online"><span class="dot-green"></span> ONLINE</div>
+                    <div class="badge-purple"><i class="fa-solid fa-medal"></i></div>
+                </div>
+                <div class="hero-bottom-card">
+                    <div>
+                        <h3>ZUX BUG</h3>
+                        <p>© By ZALL DEV</p>
+                    </div>
+                    <div style="background: #f3e8ff; color: var(--purple-main); border: 2px solid #000; width: 35px; height: 35px; border-radius: 50%; display: flex; justify-content: center; align-items: center;"><i class="fa-solid fa-bolt"></i></div>
+                </div>
+            </div>
+
+            <div class="greeting-section">
+                <h2 id="greeting-name">Selamat Datang!!</h2>
+                <div class="underline"></div>
+                <p style="font-size: 13px; color: var(--text-gray); margin-bottom: 15px; font-weight: 500;">Access Role : <strong id="user-role" style="color:#000;">MEMBER</strong></p>
+            </div>
+
+            <div class="home-shortcut-grid">
+                <div class="home-shortcut-box" style="background: linear-gradient(135deg, #ff0844 0%, #ffb199 100%);" onclick="switchNavTab('bug-screen')">
+                    <i class="fa-solid fa-bug" style="font-size: 26px; margin-bottom: 8px; display: block;"></i> BUG WA
+                </div>
+                <div class="home-shortcut-box" style="background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); color: #000;" onclick="switchNavTab('pairing-screen')">
+                    <i class="fa-solid fa-robot" style="font-size: 26px; margin-bottom: 8px; display: block;"></i> PAIRING BOT
+                </div>
+                <!-- KOTAK RESELLER -->
+                <div id="reseller-shortcut" class="home-shortcut-box hidden" style="grid-column: span 2; background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); color: #000;" onclick="openResellerScreen()">
+                    <i class="fa-solid fa-users" style="font-size: 26px; margin-bottom: 8px; display: block;"></i> FITUR RESELLER
+                </div>
+            </div>
+
+            <div id="admin-panel" class="admin-controls hidden">
+                <div style="font-size: 16px; font-weight: 700; margin-bottom: 15px; display:flex; justify-content:space-between; align-items:center;">
+                    <span><i class="fa-solid fa-shield-halved"></i> Admin Control</span>
+                    <button class="btn-gradient" style="padding: 5px 10px; font-size: 11px; border-radius: 5px; cursor:pointer;" onclick="openBroadcastModal()"><i class="fa-solid fa-bullhorn"></i> Broadcast</button>
+                </div>
+                <div style="display:flex; gap:10px; margin-bottom:10px;">
+                    <button class="admin-btn" style="background:#10b981;" onclick="adminAction('Buat Akun')"><i class="fa-solid fa-user-plus"></i> Buat Akun</button>
+                    <button class="admin-btn" style="background:#ef4444;" onclick="adminAction('Ban Akun')"><i class="fa-solid fa-ban"></i> Ban</button>
+                    <button class="admin-btn" style="background:#f59e0b;" onclick="adminAction('Kick Akun')"><i class="fa-solid fa-user-minus"></i> Kick</button>
+                </div>
+                <!-- TOMBOL MAINTENANCE -->
+                <button class="btn-outline" style="width: 100%; border-color: red; color: red; margin-bottom: 15px;" onclick="toggleMaintenance()">
+                    <i class="fa-solid fa-triangle-exclamation"></i> <span id="mt-btn-text">Aktifkan Maintenance Mode</span>
+                </button>
+
+                <div class="info-box" style="background:white; border-color:#000; box-shadow:2px 2px 0px #000; margin-bottom:10px; padding:10px;">
+                    <div class="info-header" style="margin-bottom: 10px;"><i class="fa-solid fa-money-bill-wave"></i> Konfirmasi Pembayaran & Database</div>
+                    <div class="history-list" id="transaction-history"></div>
+                </div>
+            </div>
+            <div style="height: 30px;"></div>
+        </div>
+
+        <div class="bottom-nav-container">
+            <div class="bottom-nav-bg">
+                <div class="nav-item active" onclick="switchNavTab('dashboard-screen')"><i class="fa-solid fa-house"></i></div>
+                <div class="nav-item" onclick="openMenuSheet()"><i class="fa-brands fa-whatsapp"></i></div>
+                <div style="width: 50px;"></div>
+                <div class="nav-item" onclick="openNotifModal()"><i class="fa-regular fa-bell"></i><div class="notif-dot" id="notif-dot"></div></div>
+                <div class="nav-item" onclick="showAppAlert('Pengaturan', 'Fitur segera hadir.')"><i class="fa-solid fa-wrench"></i></div>
+            </div>
+            <div class="center-btn-wrapper"><div class="center-btn" onclick="switchNavTab('features-screen')"><i class="fa-solid fa-border-all"></i></div></div>
+        </div>
+    </div>
+
+    <!-- FEATURES SCREEN -->
+    <div id="features-screen" class="screen hidden">
+        <div class="dash-header">
+            <div class="dash-logo">✨ Fitur ZUX BUG</div>
+        </div>
+        <div class="scrollable-content dash-content-wrapper" style="padding-bottom: 110px;">
+            <div class="feature-grid">
+                <div class="feature-box" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);" onclick="openGenericFeature('SPAM NGL', 'Fitur Spam NGL sedang dikembangkan.')">
+                    <i class="fa-solid fa-envelope-open-text" style="font-size: 30px; margin-bottom: 10px;"></i><br>SPAM NGL
+                </div>
+                <div class="feature-box" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: #000;" onclick="openGenericFeature('IP LOCATION', 'Fitur Lacak IP sedang dikembangkan.')">
+                    <i class="fa-solid fa-map-location-dot" style="font-size: 30px; margin-bottom: 10px;"></i><br>IP LOCATION
+                </div>
+                <div class="feature-box" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); grid-column: span 2;" onclick="openGenericFeature('CEK USERNAME', 'Fitur Cek Username Sosial Media segera hadir.')">
+                    <i class="fa-solid fa-user-magnifying-glass" style="font-size: 30px; margin-bottom: 10px;"></i><br>CEK USERNAME
+                </div>
+                <div class="feature-box" style="background: linear-gradient(135deg, #f83600 0%, #f9d423 100%);" onclick="openGenericFeature('TRACKING', 'Fitur Tracking Device segera hadir.')">
+                    <i class="fa-solid fa-satellite-dish" style="font-size: 30px; margin-bottom: 10px;"></i><br>TRACKING
+                </div>
+                <div class="feature-box" style="background: linear-gradient(135deg, #13547a 0%, #80d0c7 100%);" onclick="checkRoleFeature('OSINT')">
+                    <i class="fa-solid fa-globe" style="font-size: 30px; margin-bottom: 10px;"></i><br>OSINT
+                </div>
+            </div>
+        </div>
+
+        <div class="bottom-nav-container">
+            <div class="bottom-nav-bg">
+                <div class="nav-item" onclick="switchNavTab('dashboard-screen')"><i class="fa-solid fa-house"></i></div>
+                <div class="nav-item" onclick="openMenuSheet()"><i class="fa-brands fa-whatsapp"></i></div>
+                <div style="width: 50px;"></div>
+                <div class="nav-item" onclick="openNotifModal()"><i class="fa-regular fa-bell"></i><div class="notif-dot" id="notif-dot-2"></div></div>
+                <div class="nav-item" onclick="showAppAlert('Pengaturan', 'Fitur segera hadir.')"><i class="fa-solid fa-wrench"></i></div>
+            </div>
+            <div class="center-btn-wrapper"><div class="center-btn" onclick="switchNavTab('features-screen')"><i class="fa-solid fa-border-all"></i></div></div>
+        </div>
+    </div>
+
+    <!-- HALAMAN FITUR GENERIC (EMPTY STATE UNTUK OSINT/SPAM NGL/DLL) -->
+    <div id="generic-feature-screen" class="screen hidden">
+        <div class="sub-header">
+            <button class="back-btn" onclick="switchNavTab('features-screen')"><i class="fa-solid fa-arrow-left"></i></button>
+            <span id="generic-feature-title">FITUR</span>
+        </div>
+        <div class="scrollable-content" style="padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
+            <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" alt="Empty" style="width: 120px; opacity: 0.7; margin-top: 50px;">
+            <h3 style="margin-top: 20px; color: var(--purple-main);">Segera Hadir</h3>
+            <p style="text-align: center; color: gray; font-size: 13px; margin-top: 5px;" id="generic-feature-desc">Fitur ini sedang dalam tahap pengembangan.</p>
+        </div>
+    </div>
+
+    <!-- HALAMAN RESELLER -->
+    <div id="reseller-screen" class="screen hidden">
+        <div class="sub-header">
+            <button class="back-btn" onclick="switchNavTab('dashboard-screen')"><i class="fa-solid fa-arrow-left"></i></button>
+            RESELLER PANEL
+        </div>
+        <div class="scrollable-content" style="padding: 20px;">
+            <button class="btn-pairing-huge" style="margin-top:0;" onclick="promptResellerAdd()">
+                <i class="fa-solid fa-user-plus"></i> + ADD AKUN MEMBER
+            </button>
+            
+            <h3 style="margin-top: 25px; font-size: 16px;">Aktivitas Dibuat</h3>
+            <div id="reseller-empty-state" style="text-align:center; margin-top:20px;">
+                <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" alt="Empty" style="width: 100px; opacity: 0.5;">
+                <p style="font-size: 12px; color: gray; margin-top: 10px;">Belum ada aktivitas pembuatan akun.</p>
+            </div>
+            <div id="reseller-history-list" style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;"></div>
+        </div>
+    </div>
+
+    <!-- SUB SCREEN: BUG WA -->
+    <div id="bug-screen" class="screen hidden">
+        <div class="sub-header">
+            <button class="back-btn" onclick="switchNavTab('dashboard-screen')"><i class="fa-solid fa-arrow-left"></i></button>
+            BUG WA
+        </div>
+        <div class="scrollable-content" style="padding: 20px;">
+            <div class="info-box" style="border: 2px dashed #ff0844; background: #fff0f2;">
+                <p style="font-weight: 600; text-align: center; color: #ff0844;">Halaman Eksekusi Bug WA</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SUB SCREEN: PAIRING BOT -->
+    <div id="pairing-screen" class="screen hidden">
+        <div class="sub-header">
+            <button class="back-btn" onclick="switchNavTab('dashboard-screen')"><i class="fa-solid fa-arrow-left"></i></button>
+            PAIRING BOT
+        </div>
+        <div class="scrollable-content" style="padding: 20px; display: flex; flex-direction: column; align-items: center;">
+            <img src="https://cdn-icons-png.flaticon.com/512/4712/4712035.png" alt="Robot" style="width: 150px; margin-top: 40px; opacity: 0.8;">
+            <p style="text-align: center; color: gray; font-size: 14px; margin-top: 20px;">Hubungkan nomor WhatsApp kamu untuk mengaktifkan Bot Sender.</p>
+            
+            <button class="btn-pairing-huge" id="btn-start-pairing" onclick="openPairingPrompt()">
+                <i class="fa-solid fa-qrcode"></i> + PAIRING SEKARANG
+            </button>
+
+            <div id="pairing-result-box" class="bot-status-box fade-in">
+                <span>Bot Sender Aktif! <i class="fa-solid fa-circle-check"></i></span>
+                <span style="font-size: 11px; color: #000;">Nomer WA: <span id="pairing-wa-number"></span></span>
+                <div class="pairing-code-display" id="pairing-code-display">XXXX-XXXX</div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    window.currentUserRole = "GUEST"; 
+    window.currentUserEmail = "";
+
+    /* --- LOGIN SISTEM BARU (USERNAME & PASSWORD) --- */
+    window.loginWithCredentials = () => {
+        const userIn = document.getElementById('login-username').value.trim();
+        const passIn = document.getElementById('login-password').value.trim();
+
+        if (!userIn || !passIn) {
+            return showAppAlert("Gagal", "Username dan Password harus diisi!");
+        }
+
+        // 1. Cek jika Owner/Admin
+        if (userIn === "admin" && passIn === "ganteng") {
+            askNotificationPermission(); 
+            window.currentUserRole = "OWNER / ADMIN";
+            window.currentUserEmail = "admin";
+            
+            if(checkMaintenance()) return; 
+            
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('dashboard-screen').classList.remove('hidden');
+            document.getElementById('greeting-name').innerText = `Selamat Datang, Admin!!`;
+            document.getElementById('user-role').innerText = "OWNER / ADMIN";
+            document.getElementById('admin-panel').classList.remove('hidden');
+            document.getElementById('reseller-shortcut').classList.remove('hidden');
+            
+            checkUnreadNotif();
+            updateMtBtn();
+            return;
+        }
+
+        // 2. Cek jika User/Member dari Database Lokal (telah di-ACC admin)
+        const histData = JSON.parse(localStorage.getItem("zux_db_accounts") || '[]');
+        // Kita anggap Username/Email yang diinput admin saat ACC adalah 'userIn'
+        const userData = histData.find(h => h.email === userIn && h.status === 'active');
+
+        if (userData) {
+            askNotificationPermission();
+            window.currentUserRole = userData.role;
+            window.currentUserEmail = userData.email;
+
+            if(checkMaintenance()) return; 
+
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('dashboard-screen').classList.remove('hidden');
+            document.getElementById('greeting-name').innerText = `Selamat Datang, ${userIn.split('@')[0]}!!`;
+            document.getElementById('user-role').innerText = window.currentUserRole;
+            document.getElementById('admin-panel').classList.add('hidden');
+            
+            if(window.currentUserRole === "RESELLER") {
+                document.getElementById('reseller-shortcut').classList.remove('hidden');
+            } else {
+                document.getElementById('reseller-shortcut').classList.add('hidden');
+            }
+
+            checkUnreadNotif();
+            updateMtBtn();
+        } else {
+            // Jika username tidak ada di database, lempar ke Unauthorized (Error Screen)
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('unauthorized-screen').classList.remove('hidden');
+        }
+    };
+
+    window.logout = () => {
+        window.currentUserRole = "GUEST";
+        window.currentUserEmail = "";
+        
+        // Bersihkan input form login
+        document.getElementById('login-username').value = "";
+        document.getElementById('login-password').value = "";
+
+        document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+        document.getElementById('main-screen').classList.remove('hidden');
+    };
+
+    /* --- SPLASH SCREEN LOADING FIX --- */
+    let splashTime = 120; 
+    let currentSplashTime = 0;
+    let splashInterval;
+    
+    document.body.addEventListener('click', () => {
+        const vid = document.getElementById('splash-video');
+        if(vid && event.target.id !== 'btn-skip-id') { 
+            vid.muted = false; 
+            vid.play().catch(e => console.log("Autoplay dicegah browser")); 
+        }
+    }, { once: true });
+
+    function initSplash() {
+        splashInterval = setInterval(() => {
+            currentSplashTime++;
+            let pct = (currentSplashTime / splashTime) * 100;
+            document.getElementById('splash-progress').style.width = pct + '%';
+            if(currentSplashTime >= splashTime) window.skipSplash();
+        }, 1000);
+    }
+
+    window.skipSplash = () => {
+        if(splashInterval) clearInterval(splashInterval);
+        const vid = document.getElementById('splash-video');
+        if(vid) { 
+            vid.pause(); 
+            vid.muted = true; 
+            vid.removeAttribute('src'); 
+            vid.load();
+        }
+
+        document.getElementById('splash-screen').classList.add('hidden');
+        window.renderSlide(); 
+    };
+    
+    initSplash();
+
+    /* --- NAVIGATION TABS --- */
+    window.switchNavTab = (targetScreen) => {
+        ['dashboard-screen', 'features-screen', 'bug-screen', 'pairing-screen', 'generic-feature-screen', 'reseller-screen'].forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.classList.add('hidden');
+        });
+        document.getElementById(targetScreen).classList.remove('hidden');
+    };
+
+    window.goToPricingFromError = () => {
+        document.getElementById('unauthorized-screen').classList.add('hidden');
+        document.getElementById('pricing-screen').classList.remove('hidden');
+    };
+
+    window.backToLoginFromError = () => {
+        document.getElementById('unauthorized-screen').classList.add('hidden');
+        document.getElementById('login-screen').classList.remove('hidden');
+    };
+
+    window.openGenericFeature = (title, desc) => {
+        document.getElementById('generic-feature-title').innerText = title;
+        document.getElementById('generic-feature-desc').innerText = desc;
+        switchNavTab('generic-feature-screen');
+    };
+
+    /* --- FITUR PEMBATASAN ROLE (MEMBER TIDAK BISA AKSES OSINT DLL) --- */
+    window.checkRoleFeature = (featureName) => {
+        if (window.currentUserRole === "MEMBER" || window.currentUserRole === "GUEST") {
+            showAppAlert("Akses Ditolak", `Maaf, role Anda terlalu rendah untuk menggunakan fitur ${featureName}. Silakan upgrade fitur ke VIP.`);
+        } else {
+            window.openGenericFeature(featureName, `Fitur Pelacakan ${featureName} sedang dikerjakan.`);
+        }
+    };
+
+    /* --- RESELLER LOGIC --- */
+    window.openResellerScreen = () => {
+        switchNavTab('reseller-screen');
+        loadResellerHistory();
+    };
+
+    window.promptResellerAdd = () => {
+        showAppPrompt("Buat Akun Member", "Masukkan Username Pelanggan", (email) => {
+            const trxId = "RSL-" + Math.floor(1000 + Math.random() * 9000);
+            let histData = JSON.parse(localStorage.getItem(DB_HISTORY_KEY) || '[]');
+            histData.unshift({ 
+                trxId, 
+                role: "MEMBER", 
+                price: 0, 
+                status: 'active', 
+                email, 
+                addedBy: window.currentUserEmail || 'Reseller',
+                timestamp: Date.now()
+            });
+            localStorage.setItem(DB_HISTORY_KEY, JSON.stringify(histData));
+            loadResellerHistory();
+            loadHistory(); 
+            showAppAlert("Sukses", `Akun ${email} berhasil didaftarkan sebagai MEMBER.`);
+        });
+    };
+
+    window.loadResellerHistory = () => {
+        let histData = JSON.parse(localStorage.getItem(DB_HISTORY_KEY) || '[]');
+        const resellerItems = histData.filter(h => h.trxId && h.trxId.startsWith("RSL-"));
+        
+        const container = document.getElementById('reseller-history-list');
+        const emptyState = document.getElementById('reseller-empty-state');
+        container.innerHTML = '';
+        
+        if(resellerItems.length === 0) {
+            emptyState.style.display = 'block';
+        } else {
+            emptyState.style.display = 'none';
+            resellerItems.forEach(item => {
+                let date = new Date(item.timestamp || Date.now());
+                let timeString = date.toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'});
+                
+                const div = document.createElement('div');
+                div.style.cssText = "background: #fff; border: 2px solid #000; border-radius: 10px; padding: 10px; display: flex; justify-content: space-between; align-items: center;";
+                div.innerHTML = `
+                    <div>
+                        <strong style="font-size: 13px;">${item.email}</strong><br>
+                        <span style="font-size: 11px; color: gray;">Dibuat: ${timeString} | Role: ${item.role}</span>
+                    </div>
+                    <button onclick="deleteResellerAccount('${item.trxId}')" style="background: #ef4444; color: white; border: 1px solid #000; padding: 5px 10px; border-radius: 5px; font-size: 12px; font-weight: bold;"><i class="fa-solid fa-trash"></i></button>
+                `;
+                container.appendChild(div);
+            });
+        }
+    };
+
+    window.deleteResellerAccount = (trxId) => {
+        let histData = JSON.parse(localStorage.getItem(DB_HISTORY_KEY) || '[]');
+        histData = histData.filter(h => h.trxId !== trxId);
+        localStorage.setItem(DB_HISTORY_KEY, JSON.stringify(histData));
+        loadResellerHistory();
+        loadHistory();
+        showAppAlert("Dihapus", "Akun pelanggan berhasil dihapus.");
+    };
+
+    /* --- MAINTENANCE MODE --- */
+    window.toggleMaintenance = () => {
+        let isMt = localStorage.getItem('zux_maintenance') === 'true';
+        if(isMt) {
+            localStorage.setItem('zux_maintenance', 'false');
+            showAppAlert("Sukses", "Maintenance Mode dimatikan.");
+        } else {
+            localStorage.setItem('zux_maintenance', 'true');
+            showAppAlert("Sukses", "Maintenance Mode diaktifkan. Member sekarang tidak bisa login/akses.");
+        }
+        updateMtBtn();
+    };
+
+    window.updateMtBtn = () => {
+        let isMt = localStorage.getItem('zux_maintenance') === 'true';
+        const txt = document.getElementById('mt-btn-text');
+        if(txt) txt.innerText = isMt ? "Matikan Maintenance Mode" : "Aktifkan Maintenance Mode";
+    };
+
+    window.checkMaintenance = () => {
+        if (localStorage.getItem('zux_maintenance') === 'true' && window.currentUserRole !== 'OWNER / ADMIN') {
+            document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+            document.getElementById('maintenance-screen').classList.remove('hidden');
+            return true;
+        }
+        return false;
+    }
+
+    /* --- DATABASE LOCAL & PENDING APPROVAL SYSTEM --- */
+    const DB_HISTORY_KEY = "zux_db_accounts";
+    
+    function loadHistory() {
+        const histData = JSON.parse(localStorage.getItem(DB_HISTORY_KEY) || '[]');
+        const container = document.getElementById('transaction-history');
+        if(!container) return;
+        container.innerHTML = ''; 
+        
+        if (histData.length === 0) {
+            container.innerHTML = '<p style="text-align:center; color:gray;">Belum ada transaksi/akun.</p>';
+            return;
+        }
+
+        histData.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'history-item fade-in';
+            
+            let statusBadge = `<span class="status-success" style="color:var(--purple-main)">Aktif (${item.role})</span>`;
+            let actionButtons = '';
+
+            if(item.status === 'pending') {
+                statusBadge = `<span style="color:#d97706; font-weight:bold;">Pending Konfirmasi</span>`;
+                actionButtons = `
+                    <div style="display: flex; gap: 5px; margin-top: 5px;">
+                        <button class="btn-acc" onclick="accTransaction('${item.trxId}')">ACC</button>
+                        <button class="btn-reject" onclick="rejectTransaction('${item.trxId}')">Tolak</button>
+                    </div>
+                `;
+            }
+
+            div.innerHTML = `
+                <div class="history-row">
+                    <strong>ID: ${item.trxId}</strong>
+                    ${statusBadge}
+                </div>
+                <div style="font-size: 11px; color: #555;">Paket: <strong>${item.role}</strong> (Rp ${item.price?.toLocaleString('id-ID')})</div>
+                ${item.email !== 'Menunggu ACC' ? `<div style="font-size: 12px; font-weight:bold;">User: ${item.email}</div>` : ''}
+                ${actionButtons}
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    window.addPendingTransaction = (trxId, role, price) => {
+        let histData = JSON.parse(localStorage.getItem(DB_HISTORY_KEY) || '[]');
+        histData.unshift({ trxId, role, price, status: 'pending', email: 'Menunggu ACC', timestamp: Date.now() });
+        localStorage.setItem(DB_HISTORY_KEY, JSON.stringify(histData));
+        loadHistory();
+    };
+
+    window.accTransaction = (trxId) => {
+        let histData = JSON.parse(localStorage.getItem(DB_HISTORY_KEY) || '[]');
+        const item = histData.find(h => h.trxId === trxId);
+        if(item) {
+            showAppPrompt("Aktivasi Akun", `Masukkan Username untuk ${item.role} (ID: ${trxId}):`, (email) => {
+                item.email = email;
+                item.status = 'active';
+                localStorage.setItem(DB_HISTORY_KEY, JSON.stringify(histData));
+                loadHistory();
+                showAppAlert("Sukses", `Transaksi ${trxId} di-ACC dan Username ${email} berhasil diaktifkan dengan role ${item.role}!`);
+            });
+        }
+    };
+
+    window.rejectTransaction = (trxId) => {
+        let histData = JSON.parse(localStorage.getItem(DB_HISTORY_KEY) || '[]');
+        histData = histData.filter(h => h.trxId !== trxId);
+        localStorage.setItem(DB_HISTORY_KEY, JSON.stringify(histData));
+        loadHistory();
+        showAppAlert("Ditolak", `Transaksi ${trxId} telah ditolak & dihapus.`);
+    };
+
+    window.removeHistory = (emailOrId) => {
+        let histData = JSON.parse(localStorage.getItem(DB_HISTORY_KEY) || '[]');
+        const initialLen = histData.length;
+        histData = histData.filter(h => h.email !== emailOrId && h.trxId !== emailOrId);
+        localStorage.setItem(DB_HISTORY_KEY, JSON.stringify(histData));
+        loadHistory();
+        loadResellerHistory();
+        return initialLen !== histData.length; 
+    };
+
+    loadHistory();
+
+
+    /* --- PEMBAYARAN MANUAL QRIS & WHATSAPP --- */
+    window.startManualPayment = (role, price) => {
+        const trxId = "TRX-" + Math.floor(100000 + Math.random() * 900000);
+        window.addPendingTransaction(trxId, role, price);
+
+        document.getElementById('pricing-screen').classList.add('hidden');
+        document.getElementById('manual-qris-screen').classList.remove('hidden');
+
+        document.getElementById('manual-price-display').innerText = `Nominal: Rp ${price.toLocaleString('id-ID')}`;
+        document.getElementById('manual-trx-id').innerText = trxId;
+
+        const adminPhone = "6283821914043";
+        const message = `Halo Admin, saya ingin konfirmasi pembayaran untuk:\n- ID Transaksi: ${trxId}\n- Paket Role: ${role}\n- Nominal: Rp ${price.toLocaleString('id-ID')}\n\nBerikut bukti transfer saya:`;
+        const waUrl = `https://wa.me/${adminPhone}?text=${encodeURIComponent(message)}`;
+        
+        document.getElementById('wa-confirm-btn').href = waUrl;
+    };
+
+
+    /* --- NOTIFIKASI & BROADCAST --- */
+    function askNotificationPermission() {
+        if ("Notification" in window) Notification.requestPermission();
+    }
+    function triggerPushNotification(title, body) {
+        if ("Notification" in window && Notification.permission === "granted") {
+            new Notification(title, { body: body, icon: "https://cdn-icons-png.flaticon.com/512/4712/4712035.png" });
+        }
+    }
+
+    const BROADCAST_DB_KEY = "zux_broadcast_msg";
+    const READ_NOTIF_KEY = "zux_notif_read_status";
+
+    window.openBroadcastModal = () => {
+        document.getElementById('bc-title').value = "";
+        document.getElementById('bc-message').value = "";
+        document.getElementById('bc-image').value = "";
+        document.getElementById('broadcast-modal').classList.remove('hidden');
+    };
+    window.closeBroadcastModal = () => document.getElementById('broadcast-modal').classList.add('hidden');
+
+    window.sendBroadcast = () => {
+        const title = document.getElementById('bc-title').value.trim() || "Pemberitahuan Sistem";
+        const message = document.getElementById('bc-message').value.trim();
+        const font = document.getElementById('bc-font').value;
+        const imgInput = document.getElementById('bc-image');
+        
+        if (!message) return showAppAlert("Perhatian", "Pesan tidak boleh kosong!");
+        const broadcastData = { title, message, font, imageBase64: null, timestamp: Date.now() };
+
+        if (imgInput.files && imgInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                broadcastData.imageBase64 = e.target.result;
+                saveAndSendBroadcast(broadcastData);
+            };
+            reader.readAsDataURL(imgInput.files[0]);
+        } else {
+            saveAndSendBroadcast(broadcastData);
+        }
+    };
+
+    function saveAndSendBroadcast(data) {
+        localStorage.setItem(BROADCAST_DB_KEY, JSON.stringify(data));
+        localStorage.setItem(READ_NOTIF_KEY, "false"); 
+        closeBroadcastModal();
+        showAppAlert("Sukses", "Broadcast berhasil dikirim ke semua Member!");
+        triggerPushNotification("ZUX BUG: " + data.title, data.message);
+        checkUnreadNotif();
+    }
+
+    window.checkUnreadNotif = () => {
+        const hasNotif = localStorage.getItem(BROADCAST_DB_KEY);
+        const isRead = localStorage.getItem(READ_NOTIF_KEY);
+        if (hasNotif && isRead !== "true") {
+            document.getElementById('notif-dot').style.display = "block";
+            document.getElementById('notif-dot-2')?.style.display && (document.getElementById('notif-dot-2').style.display = "block");
+        } else {
+            document.getElementById('notif-dot').style.display = "none";
+            document.getElementById('notif-dot-2')?.style.display && (document.getElementById('notif-dot-2').style.display = "none");
+        }
+    };
+
+    window.openNotifModal = () => {
+        const rawData = localStorage.getItem(BROADCAST_DB_KEY);
+        if (!rawData) return showAppAlert("Notifikasi", "Tidak ada pemberitahuan baru saat ini.");
+
+        const data = JSON.parse(rawData);
+        document.getElementById('notif-display-title').innerText = data.title;
+        const msgEl = document.getElementById('notif-display-message');
+        msgEl.innerText = data.message;
+        msgEl.style.fontFamily = data.font; 
+
+        const imgEl = document.getElementById('notif-display-image');
+        if (data.imageBase64) { imgEl.src = data.imageBase64; imgEl.style.display = "block"; } 
+        else { imgEl.style.display = "none"; }
+
+        localStorage.setItem(READ_NOTIF_KEY, "true"); 
+        checkUnreadNotif();
+        document.getElementById('notif-modal').classList.remove('hidden');
+    };
+    window.closeNotifModal = () => document.getElementById('notif-modal').classList.add('hidden');
+
+
+    /* --- MODERN POPUP LOGIC --- */
+    let promptCallback = null;
+    window.showAppAlert = (title, message) => {
+        document.getElementById('alert-title').innerText = title;
+        document.getElementById('alert-message').innerText = message;
+        document.getElementById('alert-modal').classList.remove('hidden');
+    };
+    window.closeModernAlert = () => document.getElementById('alert-modal').classList.add('hidden');
+
+    window.showAppPrompt = (title, placeholder, callback) => {
+        document.getElementById('prompt-title').innerText = title;
+        document.getElementById('prompt-input').placeholder = placeholder;
+        document.getElementById('prompt-input').value = ""; 
+        promptCallback = callback;
+        document.getElementById('prompt-modal').classList.remove('hidden');
+    };
+    window.closeModernPrompt = () => { document.getElementById('prompt-modal').classList.add('hidden'); promptCallback = null; };
+    window.submitModernPrompt = () => {
+        const val = document.getElementById('prompt-input').value.trim();
+        if(!val) return showAppAlert("Perhatian", "Input tidak boleh kosong!");
+        document.getElementById('prompt-modal').classList.add('hidden');
+        if(promptCallback) promptCallback(val);
+    };
+
+    /* --- MENU BOTTOM SHEET --- */
+    window.openMenuSheet = () => {
+        document.getElementById('menu-bottom-sheet').classList.remove('hidden');
+    };
+
+    window.closeMenuSheet = (e) => {
+        if(e && e.target.id === 'menu-bottom-sheet') {
+            document.getElementById('menu-bottom-sheet').classList.add('hidden');
+        }
+    };
+
+    window.openPairingPrompt = () => {
+        showAppPrompt("Pairing Bot", "Masukkan Nomer WA (Contoh: 628...)", (waNumber) => {
+            document.getElementById('prompt-submit-btn').innerText = "Memproses...";
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let code = '';
+            for(let i=0; i<8; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+                if(i === 3) code += '-';
+            }
+
+            showAppAlert("Memproses", `Mengirim request pairing ke nomor ${waNumber}... Silakan tunggu.`);
+            setTimeout(() => {
+                closeModernAlert();
+                document.getElementById('prompt-submit-btn').innerText = "Kirim";
+                if ("Notification" in window && Notification.permission === "granted") {
+                    new Notification("Kode Pairing WA Anda", { body: `Kode untuk ${waNumber} adalah: ${code}`, icon: "https://cdn-icons-png.flaticon.com/512/4712/4712035.png" });
+                }
+                document.getElementById('btn-start-pairing').style.display = 'none';
+                document.getElementById('pairing-result-box').style.display = 'flex';
+                document.getElementById('pairing-wa-number').innerText = waNumber;
+                document.getElementById('pairing-code-display').innerText = code;
+            }, 1500);
+        });
+    };
+
+    /* --- ADMIN LOGIC DENGAN PEMILIHAN ROLE (RESELLER HANYA BISA BUAT ROLE MEMBER) --- */
+    window.adminAction = (actionType) => {
+        if (actionType === 'Buat Akun') {
+            // Jika role user adalah RESELLER (bukan Owner/Admin), langsung buat role MEMBER tanpa modal pilihan
+            if (window.currentUserRole === "RESELLER") {
+                confirmAddRole('MEMBER');
+            } else {
+                document.getElementById('role-select-modal').classList.remove('hidden');
+            }
+        } else {
+            showAppPrompt(actionType, "Masukkan Username / ID Transaksi", (target) => {
+                const isRemoved = window.removeHistory(target);
+                if (isRemoved) {
+                    showAppAlert("Sukses", `Data ${target} berhasil di-ban / kick.`);
+                } else {
+                    showAppAlert("Gagal", `Data ${target} tidak ditemukan di database.`);
+                }
+            });
+        }
+    };
+
+    window.confirmAddRole = (selectedRole) => {
+        document.getElementById('role-select-modal').classList.add('hidden');
+        showAppPrompt("Buat Akun (" + selectedRole + ")", "Masukkan Username Pelanggan:", (email) => {
+            const trxId = "MANUAL-" + Math.floor(1000 + Math.random() * 9000);
+            let histData = JSON.parse(localStorage.getItem(DB_HISTORY_KEY) || '[]');
+            histData.unshift({ trxId, role: selectedRole, price: 0, status: 'active', email, timestamp: Date.now() });
+            localStorage.setItem(DB_HISTORY_KEY, JSON.stringify(histData));
+            loadHistory();
+            showAppAlert("Sukses", `Akun ${email} dengan role ${selectedRole} berhasil dibuat!`);
+        });
+    };
+
+    /* --- UI SLIDER & ROUTING --- */
+    const slides = [
+        { tag: "Selamat Datang 👋", title: "Selamat Datang Di Apk ZUX BUG", desc: "Nikmati Pengalaman Terbaik Bersama Kami", btnText: "LANJUT" },
+        { tag: "TERIMA KASIH YA !!", title: "SETIA DENGAN KAMI", desc: "Terima kasih telah mensupport kami, selalu setia dengan ZUX BUG", btnText: "LANJUT" },
+        { tag: "ARE YOU READY??", title: "ENTER SIGN IN", desc: "Putar musiknya rayakan bersama bro!!", btnText: "ENTER SIGN IN" }
+    ];
+    let currentSlide = 0;
+
+    window.renderSlide = () => {
+        const data = slides[currentSlide];
+        const cardSlider = document.getElementById('card-slider');
+        document.getElementById('onboarding-screen').classList.remove('hidden');
+        cardSlider.classList.remove('fade-in'); void cardSlider.offsetWidth; cardSlider.classList.add('fade-in');
+        cardSlider.innerHTML = `<div class="tag-badge">${data.tag}</div><h2 class="slide-title">${data.title}</h2><p class="slide-desc">${data.desc}</p>`;
+        document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === currentSlide));
+        const btnLanjut = document.getElementById('btn-lanjut');
+        btnLanjut.textContent = data.btnText;
+        if(currentSlide === 2) btnLanjut.classList.add('btn-gradient'); else btnLanjut.classList.remove('btn-gradient');
+    };
+
+    window.nextSlide = () => {
+        if(currentSlide < 2) { currentSlide++; window.renderSlide(); }
+        else { document.getElementById('onboarding-screen').classList.add('hidden'); document.getElementById('main-screen').classList.remove('hidden'); }
+    };
+
+    window.showLogin = () => { document.getElementById('main-screen').classList.add('hidden'); document.getElementById('login-screen').classList.remove('hidden'); };
+    window.showPricing = () => { document.getElementById('login-screen').classList.add('hidden'); document.getElementById('pricing-screen').classList.remove('hidden'); };
+    window.goBackToLogin = () => { document.getElementById('pricing-screen').classList.add('hidden'); document.getElementById('login-screen').classList.remove('hidden'); };
+
+</script>
+</body>
+</html>
